@@ -20,7 +20,7 @@ byte colPins[COLS] = {4, 3, 2, 1}; //connect to the column pinouts of the keypad
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
 // LCD variables
-LiquidCrystal_I2C lcd(0x27, 16, 2); // I2C address 0x27, 16 column and 2 rows
+LiquidCrystal_I2C lcd(0x27, 16, 2); // I2C address 0x27, 16 columns and 2 rows
 
 // Servo variables
 Servo servo;
@@ -28,7 +28,7 @@ const int unlockPosition = 90;
 const int lockPosition = 0;  
 
 // Password variables
-const String password = "1234"; // Change this to your desired password
+const String password = "1234";
 String enteredPassword = "";
 
 // Timing variables
@@ -37,9 +37,9 @@ unsigned long unlockStartTime = 0;
 
 void setup() {
   Serial.begin(9600);
-  SPI.begin(); // Initialize SPI bus
+  SPI.begin(); // Initialize SPI for the RFID reader
   mfrc522.PCD_Init(); // Initialize MFRC522 RFID reader
-  lcd.init();
+  lcd.begin(16, 2, 0x27);
   // Servo setup
   // Set up Timer/Counter 0 (TC0) in Fast PWM mode
   TCCR0A = (1 << WGM00) | (1 << WGM01) | (1 << COM0A1);
@@ -49,6 +49,7 @@ void setup() {
   // Buzzer Setup
   DDRD |= (1 << PD5);
   PORTD |= (1 << PD5);
+  // lcd Setup
   lcd.backlight();
   lcd.clear();
   lcd.print("Welcome!"); // Display initial message on LCD
@@ -114,8 +115,8 @@ String getCardUID() {
 void unlockLock() {
   lcd.clear();
   lcd.print("Unlocking...");
-  PORTD &= ~(1 << PD5);
-  OCR0A = unlockPosition;
+  PORTD &= ~(1 << PD5); // Buzzer
+  OCR0A = unlockPosition; // Servo
   unlockStartTime = millis(); // Start unlock timer
   delay(2000); // Display the message for 2 seconds
   lcd.clear();
@@ -125,8 +126,8 @@ void unlockLock() {
 void lock() {
   lcd.clear();
   lcd.print("Locking...");
-  PORTD |= (1 << PD5);
-  OCR0A = lockPosition;
+  PORTD |= (1 << PD5); // Buzzer
+  OCR0A = lockPosition; // SErvo
   unlockStartTime = 0; // Reset unlock timer
   delay(2000); // Display the message for 2 seconds
   lcd.clear();
